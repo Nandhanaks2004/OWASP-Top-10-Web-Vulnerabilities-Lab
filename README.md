@@ -4,26 +4,26 @@
 
 This project is an interactive learning platform designed to help students and security enthusiasts understand the OWASP Top 10 web vulnerabilities through practical, hands-on simulations.
 
-Instead of relying only on theory, this application allows users to explore how vulnerabilities occur in real-world web applications, interact with simulated attack scenarios, and understand how each issue can be prevented.
+The application focuses specifically on web-based vulnerabilities and demonstrates how they occur, how attackers exploit them, and how they can be prevented — all within a safe, simulated environment.
 
 ## Objectives
 
-* Provide a clear and simple understanding of OWASP Top 10 vulnerabilities
-* Demonstrate how vulnerabilities are exploited in real applications
-* Encourage hands-on learning through interactive simulations
-* Teach secure development practices and mitigation techniques
+* Provide a clear and simplified understanding of OWASP Top 10 web vulnerabilities
+* Demonstrate real-world attack scenarios through interactive simulations
+* Encourage hands-on learning instead of passive reading
+* Help learners understand both exploitation and prevention
 
 ## Features
 
 * Interactive simulations for each OWASP Top 10 vulnerability
-* Simple and beginner-friendly explanations
-* Real-world attack scenarios (simulated safely)
-* Challenge-based learning to reinforce understanding
-* Clear demonstration of both vulnerable and secure implementations
+* Simple, beginner-friendly explanations
+* Challenge-based learning to reinforce concepts
+* Clear demonstration of vulnerable vs secure behavior
+* Clean and minimal user interface for focused learning
 
 ## Covered Vulnerabilities
 
-This lab focuses specifically on web application security and includes:
+This lab includes the following OWASP Top 10 web vulnerabilities:
 
 * A01: Broken Access Control (IDOR)
 * A02: Security Misconfiguration
@@ -38,72 +38,50 @@ This lab focuses specifically on web application security and includes:
 
 ## How It Works
 
-Each vulnerability module follows a consistent structure:
+Each vulnerability module is structured as follows:
 
 1. Explanation
-   A simple and relatable description of the vulnerability.
+   A simple and relatable description of the vulnerability
 
 2. Simulation
-   A controlled environment where users can interact and observe how the vulnerability behaves.
+   An interactive scenario where users can observe how the vulnerability behaves
 
 3. Challenge
-   A task that requires users to apply their understanding and exploit the issue in the simulation.
+   A task that requires users to apply their understanding and identify or exploit the issue
 
 4. Mitigation
-   Practical guidance and examples showing how to fix the vulnerability.
+   A clear explanation of how to prevent the vulnerability
 
-## Technology Stack
+## Usage
 
-* Frontend: HTML, CSS, JavaScript
-* Backend: Python (Flask or similar framework)
-* Simulation: Mocked endpoints and controlled logic for safe demonstration
+This is a static web application and does not require installation.
 
-## Getting Started
+To run the project:
 
-### Prerequisites
+* Download or clone the repository
+* Open the main HTML file (e.g., `index.html`) in any modern web browser
 
-* Python 3.x installed
-* Basic understanding of web applications
-
-### Installation
-
-```bash
-git clone https://github.com/your-username/owasp-top10-web-lab.git
-cd owasp-top10-web-lab
-pip install -r requirements.txt
-```
-
-### Run the Application
-
-```bash
-python app.py
-```
-
-Then open your browser and navigate to:
-
-```
-http://127.0.0.1:5000
-```
+No additional setup or dependencies are required.
 
 ## Important Note
 
-This project is built strictly for educational purposes.
+This project is intended strictly for educational purposes.
 
-All vulnerabilities are simulated in a controlled environment using mock data. The application does not expose real systems or allow actual exploitation.
+All vulnerabilities are simulated using controlled logic and mock data. The application does not perform real attacks and should not be used against real systems.
 
 ## Learning Use Cases
 
 * Cybersecurity training sessions
 * Classroom demonstrations
 * Self-paced learning
-* Hands-on lab exercises
+* Introductory web security labs
 
 ## Future Improvements
 
-* Integration with real tools (e.g., Burp Suite demonstrations)
-* Advanced attack chaining scenarios
-* Expanded challenges for deeper practice
-* User progress tracking
+* Enhanced simulations for advanced scenarios
+* Integration with practical security tools demonstrations
+* Additional challenge sets for deeper learning
+* Improved UI/UX for better interactivity
 
 ## Contribution
 
@@ -111,4 +89,4 @@ Contributions are welcome. Suggestions for improving simulations, adding new sce
 
 ## License
 
-This project is intended for educational use. Add an appropriate open-source license if you plan to distribute it publicly.
+This project is intended for educational use. Add an appropriate open-source license (such as MIT) if distributing publicly.
